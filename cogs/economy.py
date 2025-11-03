@@ -22,7 +22,6 @@ class Economy(commands.Cog):
         self.handler: DatabaseHandler = self.bot.db_handler
         if self.pool is None:
             print("Warning: Database pool is None in Economy cog!")
-        print("Economy Cog ready!")
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -56,7 +55,7 @@ class Economy(commands.Cog):
                 )
                 embed.set_footer(text=f"Your new balance is: {new_balance} points")
                 await ctx.send(embed=embed)
-            else:
+            elif seconds_remaining:
                 minutes, seconds = divmod(seconds_remaining, 60)
                 hours, minutes = divmod(minutes, 60)
 
@@ -64,6 +63,8 @@ class Economy(commands.Cog):
                     f"⏰ No **{ctx.author.display_name}**! You need to wait "
                     f"**{int(hours)}h {int(minutes)}m {int(seconds)}s**."
                 )
+            else:
+                return await ctx.send("There was an error")
 
         except Exception as e:
             print(f"Daily command error for {ctx.author.id}: {e}")

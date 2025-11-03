@@ -1,6 +1,6 @@
 # core/cog_loader.py
 import os
-import asyncio
+from discord.ext import commands
 
 async def load_all_cogs(bot):
     """Automatically load all .py files inside /cogs folder."""

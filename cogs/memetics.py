@@ -3,8 +3,10 @@ from discord.ext import commands
 import asyncpg as acpg
 from dotenv import load_dotenv
 from core.databasehandler import DatabaseHandler
-import datetime
-
+from core.paginator import PaginatorView
+from typing import List
+import traceback
+import sys
 
 class Memetics(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -13,20 +15,35 @@ class Memetics(commands.Cog):
         self.pool: acpg.Pool = self.bot.db_pool
         self.handler: DatabaseHandler = self.bot.db_handler
 
-    @commands.hybrid_command(name="showmemetics")
+    @commands.hybrid_command(name="memetics", description="Shows a paginated list of all memetic records.")
     async def show_memetics(self, ctx: commands.Context):
-        embed = discord.Embed(title="Memetics", color=discord.Color.blue())
-        records = await self.handler.get_memetics()
-        for r in records:
-            embed.add_field(
-                name=f"{r['name']} {r['icon']}", value=r["description"], inline=False
-            )
-        embed.set_author(
-            name=f"Requested by {ctx.author.display_name}",
-            icon_url=ctx.author.display_avatar.url,
-        )
-        await ctx.send(embed=embed)
+        try:
+            embeds: List[discord.Embed] = []
+            records = await self.handler.get_memetics()
 
+            if not records:
+                return await ctx.send ("No memetics were found.")
+            
+            page_number = 1
+            for chunk_records in discord.utils.as_chunks(records,10):
+                embed = discord.Embed(title=f"Memetics - {page_number}", color=discord.Color.blue())
+                for r in chunk_records:
+                    embed.add_field(
+                        name=f"{r["name"]} {r["icon"]}", value=r["description"], inline=False
+                    )
+                embeds.append(embed)
+                page_number += 1
+
+            total_pages = len(embeds)
+            for i, embed in enumerate(embeds):
+                embed.set_footer(text=f"Page {i + 1}/{total_pages}")
+
+            view = PaginatorView(embeds=embeds)
+            message = await ctx.send(embed=embeds[0], view=view)
+            view.message = message #set the current embed to disable later
+
+        except Exception:
+            traceback.print_exc(file=sys.stderr)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Memetics(bot))

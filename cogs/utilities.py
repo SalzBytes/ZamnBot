@@ -2,11 +2,9 @@ import discord
 from discord.ext import commands
 import random
 
-
 class Utilities(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        print("Utilities Cog ready!")
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
@@ -61,7 +59,6 @@ class Utilities(commands.Cog):
         poll_message = await ctx.send(embed=embed)
         await poll_message.add_reaction("👍")
         await poll_message.add_reaction("👎")
-
 
 async def setup(bot):
     await bot.add_cog(Utilities(bot))

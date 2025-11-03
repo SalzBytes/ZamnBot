@@ -27,11 +27,12 @@ class DatabaseHandler:
     # Get user balance
     async def get_user_balance(self, user_id) -> List[acpg.Record]:
         await self.create_user_if_not_exist(user_id)
-
-        record = await self.pool.fetchrow(
-            "SELECT points, daily_count FROM users WHERE user_id = $1", user_id
-        )
-        return record
+        async with self.pool.acquire() as conn:
+            conn: acpg.Connection
+            record = await conn.fetchrow(
+                "SELECT points, daily_count FROM users WHERE user_id = $1", user_id
+            )
+            return record
 
     async def get_user_streak_count(self, user_id) -> int:
         await self.create_user_if_not_exist(user_id)
@@ -106,7 +107,7 @@ class DatabaseHandler:
 
                 return True, daily_bonus, new_balance, claim_record["daily_count"], None
         except Exception as e:
-            return (False,)
+            return False, 0, 0, 0, None
 
     # Transer Points From User To User
     async def transfer_point(

@@ -11,10 +11,6 @@ class Gamba(commands.Cog):
     def __init__(self, bot: commands.Bot):
         super().__init__()
         self.bot = bot
-        self.pool = None
-        # if self.pool is None:
-        #     print("Warning: Database pool is None in Economy cog!")
-        print("Gamba Cog ready!")
 
     @commands.hybrid_command(
         name="slots", aliases=["sl"], description="Play slots machine"
